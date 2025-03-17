@@ -33,9 +33,6 @@ def config_reader()-> dict:
 
 def group_data(reads, groups, minutes_between_reads):
     all_data={}
-    with open("settings.yaml") as file:
-        settings = yaml.safe_load(file.read())
-        minutes_between_reads=settings.get('minutes_between_reads', None)
     for group, wells in groups.items():
         group_wells=pd.DataFrame()
         for well in wells:
@@ -47,9 +44,10 @@ def group_data(reads, groups, minutes_between_reads):
                 well_values.append(fluorescence) #creates a list of all reads for a particular well
             group_wells[well]=well_values #creates a dataframe with all wells with the same treatment
         group_wells=group_wells.T
-        time_index = np.arange(minutes_between_reads, minutes_between_reads * (len(group_wells) + 1), minutes_between_reads)
-        group_wells.index = time_index[:len(group_wells)]
-        print (group_wells)
+        group_wells.columns=group_wells.columns*10/60
+        #time_index = np.arange(minutes_between_reads, minutes_between_reads * (len(group_wells) + 1), minutes_between_reads)
+        #group_wells.index = time_index[:len(group_wells)]
+        group_wells.to_csv(f"./{group}.csv")
         all_data[group]=group_wells #creates a dictionary will all the data
     return all_data
     
@@ -64,7 +62,7 @@ def plotting(all_data, index_increments):
             else:
                 label.set_visible(False)
         plt.title(group)
-        plt.xlabel("Time (minutes)")
+        plt.xlabel("Time (hours)")
         plt.ylabel("ThT Fluorescence")
         plt.savefig(f"{group}.png")
         plt.close() 
